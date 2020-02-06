@@ -10,4 +10,4 @@ This is a list of required parts, in the file titled recomendedparts.txt there w
  - 1 green led
  - 2 yellow leds
  - 3 red leds
- - an asortment of wires, the box in the Recomended Parts supplied my with enough and extra
+ - an asortment of wires, the box in the Recomended Parts supplied me with enough and extra
