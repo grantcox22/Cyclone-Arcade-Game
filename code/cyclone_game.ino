@@ -30,12 +30,12 @@ Modes mode = EASY; // Deffining the mode as Easy
 Areas current_area = MENU; // The first area is the menu
 
 int timer = 0, numofled = 0; // Variables related that are used for the cycling of the LEDs
-bool high = false; 
+bool high = false, on = false; 
 
 int score, tries; // Variables for the players Score and how many tries they have left
 
-int delay1 = 30, delay2 = 20, credits = 0;
-
+int delay1 = 200, delay2 = 100, delay3 = 10, delay4 = 50, easy_mode_delay = 8, hard_mode_delay = 5, master_mode_delay = 4; //delay presets
+int credits = 0;
 
 void ledOn(int index) { // Turns off all LEDs except for one, indicated by the index variable
 
@@ -108,8 +108,28 @@ void loop() { // Loops infinately
   Serial.println(analogRead(mode_button));
 
   if (current_area == MENU) { // While in the Menu
+    timer++;
+    if (timer == delay3 && !on) { // Led animation
+        if (!high) numofled++;
+        else numofled--;
+        ledOn(numofled);
+        timer = 0;
+        if (numofled == 1) high = false;
+        else if (numofled == 5) high = true; 
+    } else if (timer == delay4 && on) { // Stays on led for 1 second
+      on = false;
+      timer = 0;
+    }
+    ledOn(numofled);
     displayMessage("Welcome!", "Press Play!", false);
-    if (pressed(play_button)) { // If the second button is pressed, go to the Mode Selection Menu
+    if (pressed(mode_button) && pressed(play_button)) { // If you hit both mode and play it sends you to the credits
+      lcd.clear();
+      allLedsOn();
+      delay(500);
+      allLedsOff();
+      current_area = CREDITS;
+      timer = 0;
+    }else if (pressed(play_button)) { // If the second button is pressed, go to the Mode Selection Menu
       allLedsOn();
       delay(500);
       allLedsOff();
@@ -118,12 +138,11 @@ void loop() { // Loops infinately
       displayMessage("Mode: Easy", "Press Play!", true);
       mode = EASY;
       current_area = MODE_SELECT;
-    } else if (pressed(mode_button) && pressed(play_button)) {
-      lcd.clear();
-      allLedsOn();
-      delay(500);
-      allLedsOff();
-      current_area = CREDITS;
+      timer = 0;
+      numofled = 1;
+    } else if (pressed(mode_button)) { // Stops the LED
+      on = true;
+      timer = 0;
     }
     
   } else if (current_area == MODE_SELECT) { // If in the Mode Selection Menu 
@@ -180,17 +199,17 @@ void loop() { // Loops infinately
     timer++;
     switch (mode) {
       case EASY:
-      del = 8;
+      del = easy_mode_delay;
       break;
       case HARD:
-      del = 5;
+      del = hard_mode_delay;
       break;
       case MASTER:
-      del = 4;
+      del = master_mode_delay;
       break;
     }
     if (tries != 0) { // If the player has more than 0 tries
-      if (timer >= del) { // Go to the next LED in the series, back and forth
+      if (timer == del) { // Go to the next LED in the series, back and forth
         if (!high) numofled++;
         else numofled--;
         ledOn(numofled);
@@ -206,6 +225,7 @@ void loop() { // Loops infinately
         allLedsOn();
         delay(500);
         allLedsOff();
+        timer = 0;
       }
     }
     
@@ -273,29 +293,42 @@ void loop() { // Loops infinately
         allLedsOff();
       }
     }
-    delay(10);
     
   } else if (current_area == CREDITS) { //Displays credits
     
-    timer = 0;
     timer++;
-    if (timer == delay1) credits++;
-    else if (timer == delay2 && credits != 0) credits++;
-    if (credits == 0) displayMessage("Game By:", "Grant Cox", true);
-    else if (credits == 1) displayMessage("Coded In:", "C/C++", true);
-    else if (credits == 2) displayMessage("File Length:", "301 lines", true);
-    else if (credits == 3) displayMessage("Micro Processor:", "Arduino Nano", true);
-    else if (credits == 4) displayMessage("Thank You", "For Playing!", true);
+    if (timer == delay2) {
+      credits++;
+      lcd.clear();
+      timer = 0;
+    }
+    if (credits == 0) displayMessage("Game By:", "Grant Cox", false);
+    else if (credits == 1) displayMessage("Coded In:", "C/C++", false);
+    else if (credits == 2) displayMessage("File Length:", "334 lines", false);
+    else if (credits == 3) displayMessage("Micro Processor:", "Arduino Nano", false);
+    else if (credits == 4) displayMessage("For more info", "Go to my website", false);
+    else if (credits == 5) displayMessage("Thank You", "For Playing!", false);
     else {
       current_area = MENU;
       lcd.clear();
       credits = 0;
+      timer = 0;
+      numofled = 1;
+      allLedsOff();
+      on = false;
     }
-    if (pressed(play_button) || pressed(play_button)) { // if any button is pressed then go back to the menu
+    if (pressed(play_button) || pressed(mode_button)) { // if any button is pressed then go back to the menu
       current_area = MENU;
       lcd.clear();
       credits = 0;
+      timer = 0;
+      numofled = 1;
+      allLedsOn();
+      delay(500);
+      allLedsOff();
+      on = false;
     }
     
   }
+  delay(10);
 }
